@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block style %}
+<style>
+.btn-indigo,.greet {
+    color: #fff;
+    background-color: #AC8331 !important;
+}
+.btn-primary{
+    color: #fff;
+    background-color: #AC8331 !important;
+    border: none !important;
+}
+.bgr{
+    
+    background-color: #AC8331 !important;
+    border: 1px solid #fff !important;
+}
+.bgr h5{
+    color: #fff;
+}
+
+
+</style>
+{% endblock style %}
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12 d-flex justify-content-end">
+            <h3 class="greet">Hello Dr {{request.user}}</h3>
+            <a href="{% url 'logout' %}"><button class="btn btn-primary">Logout</button></a>
+        </div>
+    </div>
+</div>
+<div class="container">
+    {% comment %} <h2 style="text-align: center;font-family: 'Raleway', sans-serif;
+" class="mt-5 mb-5"><u>Diabetic Retinopathy</u></h2> {% endcomment %}
+            <div class="row mt-5">
+        <div class="col-md-6 mt-5">
+            <img src="https://cdn-b.medlife.com/2020/01/diabetic-retinopathy1.png" id="banner" alt=""
+                 style="width: 500px">
+        </div>
+        <div class="col-md-6 mt-5">
+            <div class="card p-4 hoverable">
+                <div class="card-header bgr">
+                    <h5 style="text-align: center;font-weight: bold;font-family:
+                     'Raleway', sans-serif;" id="title">Upload Image below</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="buttons">
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="name" placeholder="Enter Patient Name">
+                              </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="option1" checked>
+                                <label class="form-check-label" id="right" for="exampleRadios1">
+                                  Right eye
+                                </label>
+                              </div>
+                              <div class="form-check">
+                                <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios2" value="option2">
+                                <label class="form-check-label" id="left" for="exampleRadios2">
+                                  Left Eye
+                                </label>
+                              </div>
+                            <button class="btn btn-indigo"><input type="file" id="image"/></button>
+                            <button class="btn btn-indigo" id="process"> Predict <i class="fas fa-cloud-upload-alt"></i>
+                            </button>
+                        </div>
+
+                        <div class="loader ml-5" style="display: none;">
+                            <div class="spinner-grow text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <div class="spinner-grow text-secondary" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <div class="spinner-grow text-success" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <div class="spinner-grow text-danger" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <div class="spinner-grow text-warning" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <div class="spinner-grow text-info" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <div class="spinner-grow text-primary" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                            <div class="spinner-grow text-secondary" role="status">
+                                <span class="sr-only">Loading...</span>
+                            </div>
+                        </div>
+
+                        <div class="result" style="display: none;margin-left: 10%">
+                            <p style="font-weight: bold;font-size: 24px;color: #3f51b5;" id="disease"></p>
+                            <p style="font-weight: bold;font-size: 24px;color: #3f51b5;" id="accuracy"></p>
+                            <p>
+                                <a data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false"
+                                   aria-controls="collapseExample">
+                                    View Graph <i class="fas fa-angle-down"></i>
+                                </a>
+                                <a href="/" class="ml-5">
+                                    Try again <i class="fas fa-sync"></i>
+                                </a>
+                            </p>
+                            <div class="collapse" id="collapseExample">
+                                <div class="card card-body">
+                                    <img id="graph" style="width: 350px">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock body %}
+
+{% block js %}
+<script>
+    $(document).ready(() => {
+        $("input[id='image']").on('change', function (event) {
+            let input = this;
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                $('#banner').css('width', '350px')
+                $('#banner').addClass('img-thumbnail')
+                $('#banner').attr('src', e.target.result);
+            }
+            reader.readAsDataURL(input.files[0]);
+        })
+
+        $('#process').click(() => {
+            $('.buttons').hide()
+            $('.loader').show()
+            $('#title').html("Processing...")
+            let image = $('#image').prop('files')[0]
+            var data = image['name'];
+
+            console.log(data)
+            name = $("#name").val()
+            var right = $('label[for="exampleRadios1"]').text();
+            var left = $('label[for="exampleRadios2"]').text();
+            console.log("Radio Buttons",right , left , name)
+            $.ajax({
+                url: "{% url 'result' %}",
+                type: "POST",
+                dataType: 'json',
+                data: {
+                    name: name,
+                    image: data,
+                    right: right,
+                    left: left,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function (xhr) {
+                    alert("Error while processing")
+                },
+                error: function (xhr) {
+                    $('#title').html("Result")
+                    let result = (xhr.responseText).split("-");
+                    let disease = result[0];
+                    let accuracy = result[1];
+                    $('.loader').hide()
+                    $('#disease').html("Result: " + disease)
+                    $('#accuracy').html("Accuracy: " + parseInt(accuracy).toFixed(2) + "%")
+                    $('#graph').attr('src', '{% static "graph.png" %}')
+                    $('.result').show()
+                    alert("Your PDF has been Created!")
+                }
+            })
+        })
+    })
+</script>
+{% endblock js %}

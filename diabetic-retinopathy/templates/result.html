@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block style %}
+{% endblock style %}
+{% block body %}
+<div class="container shadow"
+         style="max-width: 640px; margin: auto; margin-top: 2em; padding: 2em">
+        <h4>To generate a report, please click the button below:</h4>
+        <a class="btn btn-success" href="{% url 'pdfFile' %}">Report</a>
+    </div>
+{% endblock body %}
+
+{% block js %}
+{% endblock js %}
